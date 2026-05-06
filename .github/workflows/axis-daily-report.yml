@@ -1,0 +1,40 @@
+name: Axis Daily Slack Report
+
+on:
+  schedule:
+    # 12:00 noon Hong Kong time is 04:00 UTC.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  post-axis-report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: axis_slack_bot
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Post Axis report to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PLASMA_RPC_URL: https://rpc.plasma.to
+          SUSDX_TOKEN_ADDRESS: "0x13a099765b34b3aafedb8698cf7fd418e7730012"
+          AXIS_WALLET_ADDRESS: "0x332bc14667a9d6d27f816b75a018ba1acc242bd2"
+          SUSDX_USDX_RATE_CONTRACT_ADDRESS: "0x24891f7852021413d4acb0641994d045eeadc9be"
+          SUSDX_USDX_RATE_DECIMALS: "18"
+          USDX_USD: "1"
+          INITIAL_BALANCE_USDT: "1000000"
+          STAKE_START_DATE: "2026-05-06"
+          REPORT_TIMEZONE: "Asia/Hong_Kong"
+        run: python axis_fair_value_bot.py
