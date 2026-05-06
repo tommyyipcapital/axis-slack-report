@@ -1,0 +1,1 @@
+0 0 * * * cd /Users/admin/Documents/rong/axis_slack_bot && set -a && . ./.env && set +a && /usr/local/bin/python3 axis_fair_value_bot.py >> /Users/admin/Documents/rong/axis_slack_bot/axis_bot.log 2>&1
