@@ -3,7 +3,7 @@ name: Axis Daily Slack Report
 on:
   schedule:
     # 12:00 noon Hong Kong time is 04:00 UTC.
-    - cron: "0 4 * * *"
+    - cron: "15 4 * * *"
   workflow_dispatch:
 
 jobs:
