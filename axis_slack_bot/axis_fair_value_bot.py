@@ -25,6 +25,7 @@ DEFAULT_USDX_USD = Decimal("1")
 DEFAULT_RATE_DECIMALS = 18
 DEFAULT_INITIAL_BALANCE_USDT = Decimal("1000000")
 DEFAULT_STAKE_START_DATE = "2026-05-06"
+DEFAULT_STAKE_START_AT = "2026-05-06T15:00:00"
 DEFAULT_REPORT_TIMEZONE = "Asia/Hong_Kong"
 
 try:
@@ -126,10 +127,26 @@ def days_since(start_date: str, today: dt.date) -> int:
     return max((today - start).days, 0)
 
 
-def projected_apy(net_change: Decimal, initial_balance: Decimal, days_staked: int) -> str:
-    if days_staked == 0:
-        return "N/A (day 0)"
-    apy = (net_change / initial_balance) * (Decimal(365) / Decimal(days_staked))
+def parse_local_datetime(value: str, timezone: str) -> dt.datetime:
+    parsed = dt.datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=ZoneInfo(timezone))
+    return parsed.astimezone(ZoneInfo(timezone))
+
+
+def projected_apy(
+    net_change: Decimal,
+    initial_balance: Decimal,
+    stake_start_at: str,
+    now: dt.datetime,
+    report_timezone: str,
+) -> str:
+    start = parse_local_datetime(stake_start_at, report_timezone)
+    elapsed_seconds = Decimal(str(max((now - start).total_seconds(), 0)))
+    if elapsed_seconds == 0:
+        return "N/A (0 hours)"
+    elapsed_years = elapsed_seconds / Decimal(60 * 60 * 24 * 365)
+    apy = (net_change / initial_balance) / elapsed_years
     percent = (apy * Decimal(100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     sign = "+" if percent >= 0 else ""
     return f"{sign}{percent}%"
@@ -142,12 +159,14 @@ def build_message(
     rate_source: str,
     initial_balance_usdt: Decimal,
     stake_start_date: str,
+    stake_start_at: str,
     report_timezone: str,
 ) -> str:
     usdx_amount = balance * susdx_usdx_rate
     fair_value = usdx_amount * usdx_usd
     net_change = fair_value - initial_balance_usdt
-    today_date = dt.datetime.now(ZoneInfo(report_timezone)).date()
+    now = dt.datetime.now(ZoneInfo(report_timezone))
+    today_date = now.date()
     today = today_date.strftime("%Y-%m-%d")
     days_staked = days_since(stake_start_date, today_date)
 
@@ -159,7 +178,7 @@ def build_message(
             f"Value (USDT): {money(fair_value)}",
             f"Initial balance (USDT): {money(initial_balance_usdt)}",
             f"Net change: {signed_money(net_change)}",
-            f"Projected APY: {projected_apy(net_change, initial_balance_usdt, days_staked)}",
+            f"Projected APY: {projected_apy(net_change, initial_balance_usdt, stake_start_at, now, report_timezone)}",
             "",
             f"Days staked: {days_staked}",
             f"Live rate: 1 sUSDx = {decimal_places(susdx_usdx_rate, '0.000001')} USDx",
@@ -204,6 +223,7 @@ def main() -> int:
         "INITIAL_BALANCE_USDT", DEFAULT_INITIAL_BALANCE_USDT
     )
     stake_start_date = os.getenv("STAKE_START_DATE", DEFAULT_STAKE_START_DATE)
+    stake_start_at = os.getenv("STAKE_START_AT", DEFAULT_STAKE_START_AT)
     report_timezone = os.getenv("REPORT_TIMEZONE", DEFAULT_REPORT_TIMEZONE)
 
     balance = read_balance(rpc_url, token_address, wallet_address)
@@ -217,6 +237,7 @@ def main() -> int:
         rate_source=rate_contract_address,
         initial_balance_usdt=initial_balance_usdt,
         stake_start_date=stake_start_date,
+        stake_start_at=stake_start_at,
         report_timezone=report_timezone,
     )
 
