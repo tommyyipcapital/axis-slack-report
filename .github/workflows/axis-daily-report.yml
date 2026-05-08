@@ -36,5 +36,7 @@ jobs:
           USDX_USD: "1"
           INITIAL_BALANCE_USDT: "1000000"
           STAKE_START_DATE: "2026-05-06"
+          STAKE_START_AT: "2026-05-06T15:00:00"
           REPORT_TIMEZONE: "Asia/Hong_Kong"
+
         run: python axis_fair_value_bot.py
