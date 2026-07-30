@@ -1,13 +1,13 @@
-# Axis sUSDx Slack Fair Value Bot
+# Axis ogUSDx Slack Fair Value Bot
 
-This small bot reads the sUSDx balance for your wallet on Plasma and posts a daily fair-value estimate to Slack.
+This small bot reads the ogUSDx balance for your wallet on Ethereum and posts a daily fair-value estimate to Slack.
 
 Current configured position:
 
-- Token: `0x13a099765b34b3aafedb8698cf7fd418e7730012`
+- Token: `0x29e0fD0771BfAb37897e7F9AE8c5eba7caaf0bfD`
 - Wallet: `0x332bc14667a9d6d27f816b75a018ba1acc242bd2`
-- Live rate contract: `0x24891f7852021413d4acb0641994d045eeadc9be`
-- Live rate function: `getRate()`
+- Live rate contract: `0xEB892628D1E58BC475A6dCB7F5dBC4F591632AA4` on Ethereum mainnet
+- Live rate function: `exchangeRate()`
 - USDx/USDT assumption: `1 USDx = 1 USDT`
 
 ## Test It Manually
@@ -22,8 +22,8 @@ python3 axis_fair_value_bot.py --dry-run
 Expected result today is close to:
 
 ```text
-Balance: 994,886.300076 sUSDx
-Live rate: 1 sUSDx = 1.005177620496321032 USDx
+Balance: 994,886.300076 ogUSDx
+Live rate: 1 ogUSDx = 1.005177620496321032 USDx
 Value (USDT): $1,000,037.44
 Initial balance (USDT): $1,000,000.00
 Net change: +$37.44
@@ -62,7 +62,7 @@ Paste this line to run every day at 9:00 AM:
 
 ## Rate Note
 
-The bot reads the live sUSDx/USDx rate from `getRate()` on the rate contract. It still treats USDx/USDT as `1:1`; change `USDX_USD` only if you want to mark USDx below or above par.
+The bot reads the ogUSDx balance and live ogUSDx/USDx conversion rate from Ethereum mainnet. It still treats USDx/USDT as `1:1`; change `USDX_USD` only if you want to mark USDx below or above par.
 
 ## Run Daily With GitHub Actions
 
