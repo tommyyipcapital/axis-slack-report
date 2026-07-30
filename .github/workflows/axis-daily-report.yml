@@ -28,11 +28,11 @@ jobs:
       - name: Post Axis report to Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          PLASMA_RPC_URL: https://rpc.plasma.to
-          SUSDX_TOKEN_ADDRESS: "0x13a099765b34b3aafedb8698cf7fd418e7730012"
+          ETHEREUM_RPC_URL: https://ethereum-rpc.publicnode.com
+          OGUSDX_TOKEN_ADDRESS: "0x29e0fD0771BfAb37897e7F9AE8c5eba7caaf0bfD"
           AXIS_WALLET_ADDRESS: "0x332bc14667a9d6d27f816b75a018ba1acc242bd2"
-          SUSDX_USDX_RATE_CONTRACT_ADDRESS: "0x24891f7852021413d4acb0641994d045eeadc9be"
-          SUSDX_USDX_RATE_DECIMALS: "18"
+          OGUSDX_USDX_RATE_CONTRACT_ADDRESS: "0xEB892628D1E58BC475A6dCB7F5dBC4F591632AA4"
+          OGUSDX_USDX_RATE_DECIMALS: "18"
           USDX_USD: "1"
           INITIAL_BALANCE_USDT: "1000000"
           STAKE_START_DATE: "2026-05-06"
