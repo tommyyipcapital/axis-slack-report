@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Daily Slack fair-value report for an Axis ogUSDx position on Ethereum."""
+"""Daily Slack fair-value report for an Axis sUSDx position on Ethereum."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 getcontext().prec = 50
 
 DEFAULT_ETHEREUM_RPC_URL = "https://ethereum-rpc.publicnode.com"
-DEFAULT_TOKEN_ADDRESS = "0x29e0fD0771BfAb37897e7F9AE8c5eba7caaf0bfD"
+DEFAULT_TOKEN_ADDRESS = "0xEB892628D1E58BC475A6dCB7F5dBC4F591632AA4"
 DEFAULT_WALLET_ADDRESS = "0x332bc14667a9d6d27f816b75a018ba1acc242bd2"
 DEFAULT_RATE_CONTRACT_ADDRESS = "0xEB892628D1E58BC475A6dCB7F5dBC4F591632AA4"
 DEFAULT_USDX_USD = Decimal("1")
@@ -96,7 +96,7 @@ def read_balance(rpc_url: str, token_address: str, wallet_address: str) -> Decim
     return Decimal(raw_balance) / (Decimal(10) ** decimals)
 
 
-def read_ogusdx_usdx_rate(
+def read_susdx_usdx_rate(
     rpc_url: str, rate_contract_address: str, rate_decimals: int
 ) -> Decimal:
     # exchangeRate() on Ethereum mainnet.
@@ -156,7 +156,7 @@ def projected_apy(
 
 def build_message(
     balance: Decimal,
-    ogusdx_usdx_rate: Decimal,
+    susdx_usdx_rate: Decimal,
     usdx_usd: Decimal,
     rate_source: str,
     initial_balance_usdt: Decimal,
@@ -164,7 +164,7 @@ def build_message(
     stake_start_at: str,
     report_timezone: str,
 ) -> str:
-    usdx_amount = balance * ogusdx_usdx_rate
+    usdx_amount = balance * susdx_usdx_rate
     fair_value = usdx_amount * usdx_usd
     net_change = fair_value - initial_balance_usdt
     now = dt.datetime.now(ZoneInfo(report_timezone))
@@ -176,14 +176,14 @@ def build_message(
         [
             f"Axis - {today}",
             "==========================",
-            f"Balance: {number(balance)} ogUSDx",
+            f"Balance: {number(balance)} sUSDx",
             f"Value (USDT): {money(fair_value)}",
             f"Initial balance (USDT): {money(initial_balance_usdt)}",
             f"Net change: {signed_money(net_change)}",
             f"Projected APY: {projected_apy(net_change, initial_balance_usdt, stake_start_at, now, report_timezone)}",
             "",
             f"Days staked: {days_staked}",
-            f"Live rate: 1 ogUSDx = {decimal_places(ogusdx_usdx_rate, '0.000001')} USDx",
+            f"Live rate: 1 sUSDx = {decimal_places(susdx_usdx_rate, '0.000001')} USDx",
             f"Rate source: {rate_source}",
         ]
     )
@@ -208,25 +208,21 @@ def post_to_slack(webhook_url: str, message: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Report an Axis ogUSDx wallet's fair value to Slack."
+        description="Report an Axis sUSDx wallet's fair value to Slack."
     )
     parser.add_argument("--dry-run", action="store_true", help="Print only; do not post.")
     args = parser.parse_args()
 
     ethereum_rpc_url = os.getenv("ETHEREUM_RPC_URL", DEFAULT_ETHEREUM_RPC_URL)
     balance_rpc_url = os.getenv("BALANCE_RPC_URL", ethereum_rpc_url)
-    token_address = os.getenv(
-        "OGUSDX_TOKEN_ADDRESS", os.getenv("SUSDX_TOKEN_ADDRESS", DEFAULT_TOKEN_ADDRESS)
-    )
+    token_address = os.getenv("SUSDX_TOKEN_ADDRESS", DEFAULT_TOKEN_ADDRESS)
     wallet_address = os.getenv("AXIS_WALLET_ADDRESS", DEFAULT_WALLET_ADDRESS)
     rate_contract_address = os.getenv(
-        "OGUSDX_USDX_RATE_CONTRACT_ADDRESS",
-        os.getenv("SUSDX_USDX_RATE_CONTRACT_ADDRESS", DEFAULT_RATE_CONTRACT_ADDRESS),
+        "SUSDX_USDX_RATE_CONTRACT_ADDRESS", DEFAULT_RATE_CONTRACT_ADDRESS
     )
     rate_decimals = int(
         os.getenv(
-            "OGUSDX_USDX_RATE_DECIMALS",
-            os.getenv("SUSDX_USDX_RATE_DECIMALS", DEFAULT_RATE_DECIMALS),
+            "SUSDX_USDX_RATE_DECIMALS", DEFAULT_RATE_DECIMALS
         )
     )
     usdx_usd = env_decimal("USDX_USD", DEFAULT_USDX_USD)
@@ -238,12 +234,12 @@ def main() -> int:
     report_timezone = os.getenv("REPORT_TIMEZONE", DEFAULT_REPORT_TIMEZONE)
 
     balance = read_balance(balance_rpc_url, token_address, wallet_address)
-    ogusdx_usdx_rate = read_ogusdx_usdx_rate(
+    susdx_usdx_rate = read_susdx_usdx_rate(
         ethereum_rpc_url, rate_contract_address, rate_decimals
     )
     message = build_message(
         balance,
-        ogusdx_usdx_rate,
+        susdx_usdx_rate,
         usdx_usd,
         rate_source=rate_contract_address,
         initial_balance_usdt=initial_balance_usdt,
